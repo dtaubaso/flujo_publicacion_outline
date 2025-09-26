@@ -2,8 +2,8 @@
 # Funciones para extraer contenido de páginas web
 
 import random
-import requests
-import tldextract
+import requests, urllib
+from curl_cffi import requests as curl_requests
 from typing import Dict, Any
 from bs4 import BeautifulSoup
 import trafilatura
@@ -14,9 +14,22 @@ from config import USER_AGENTS
 def http_get(url: str, timeout: int = 30) -> str:
     """Realiza una petición HTTP GET con User-Agent aleatorio"""
     headers = {"User-Agent": random.choice(USER_AGENTS)}
-    r = requests.get(url, headers=headers, timeout=timeout)
-    r.raise_for_status()
+    r = curl_requests.get(url, impersonate='chrome', timeout=timeout)
+    if r.status_code != 200:
+        raise ValueError(f"Error al realizar la petición: {r.status_code}") 
     return r.text
+
+def extract_domain(url: str) -> str:
+    """Extrae el dominio base de una URL"""
+    try:
+        parsed = urllib.parse.urlparse(url)
+        domain = parsed.netloc.lower()
+        # limpiar subdominios comunes
+        if domain.startswith("www."):
+            domain = domain[4:]
+        return domain
+    except:
+        return ""
 
 
 def extract_article(url: str) -> Dict[str, Any]:
@@ -57,13 +70,9 @@ def extract_article(url: str) -> Dict[str, Any]:
         has_tables = bool(soup.find_all("table"))
         has_lists = bool(soup.find_all(["ul", "ol"]))
         
-        # Extraer dominio
-        domain = tldextract.extract(url)
-        site = ".".join(part for part in [domain.domain, domain.suffix] if part)
-        
         return {
             "url": url,
-            "site": site,
+            "site": extract_domain(url), 
             "title": meta_title,
             "text": text,
             "h2": h_tags.get("h2", []),

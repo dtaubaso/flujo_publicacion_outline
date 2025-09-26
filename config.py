@@ -12,7 +12,7 @@ USER_AGENTS = [
 
 # URLs de APIs de DataForSEO
 DATAFORSEO_SERP_URL = "https://api.dataforseo.com/v3/serp/google/organic/live/advanced"
-DATAFORSEO_RELATED_URL = "https://api.dataforseo.com/v3/dataforseo_labs/google/related_searches/live"
+DATAFORSEO_RELATED_URL = "https://api.dataforseo.com/v3/dataforseo_labs/google/related_keywords/live"
 DATAFORSEO_AUTOCOMPLETE_URL = "https://api.dataforseo.com/v3/keywords_data/google_autocomplete/live"
 
 # Configuración por defecto

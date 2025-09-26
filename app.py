@@ -33,142 +33,149 @@ from ui_components import (
 
 # ──────────────────────────────────────────────────────────────────────────────
 # UI CONFIG
-st.set_page_config(page_title="Profile builder", page_icon="🧭", layout="wide")
 
-# Configurar interfaz
-config = setup_sidebar()
-keywords, run_btn = setup_main_input()
+def main():
+    """Función principal de la aplicación Streamlit"""
+    st.set_page_config(page_title="Generador de outline", page_icon="🧭", layout="wide")
 
-# ──────────────────────────────────────────────────────────────────────────────
-# MAIN EXECUTION
+    # Configurar interfaz
+    config = setup_sidebar()
+    keywords, run_btn = setup_main_input()
 
-if run_btn:
-    if not keywords:
-        st.warning("Por favor ingresa al menos una palabra clave.")
-        st.stop()
-    if not config["dfs_login"] or not config["dfs_password"]:
-        st.error("Las credenciales de DataForSEO son requeridas.")
-        st.stop()
+    # ──────────────────────────────────────────────────────────────────────────────
+    # MAIN EXECUTION
 
-    tabs = st.tabs([f"{k}" for k in keywords])
+    if run_btn:
+        if not keywords:
+            st.warning("Por favor ingresa al menos una palabra clave.")
+            st.stop()
+        if not config["dfs_login"] or not config["dfs_password"]:
+            st.error("Las credenciales de DataForSEO son requeridas.")
+            st.stop()
 
-    for tab, kw in zip(tabs, keywords):
-        with tab:
-            st.subheader(f"Keyword: {kw}")
+        tabs = st.tabs([f"{k}" for k in keywords])
 
-            # Consultar SERP via DataForSEO
-            with st.status("Consultando SERP de Google via DataForSEO…", expanded=False):
-                js = dfs_live_serp(
-                    kw, 
-                    login=config["dfs_login"], 
-                    password=config["dfs_password"],
-                    location_name=config["loc_name"] or config["market"], 
-                    gl=config["gl"] or "", 
-                    hl=config["hl"] or config["lang"],
-                    device=config["device"], 
-                    safe=config["safe"]
-                )
-                features = parse_serp_features(js)
-                organic = features["organic"][:config["top_n"]]
-                paa = features["paa"]
-                videos = features["videos"]
-                ai_overview = features["ai_overview"]
-                display_results_summary(organic, paa, videos, ai_overview)
+        for tab, kw in zip(tabs, keywords):
+            with tab:
+                st.subheader(f"Keyword: {kw}")
 
-            # Análisis de intent
-            intent_label, intent_scores = guess_intent(organic, paa)
-            st.markdown(f"**Intención (heurística)**: `{intent_label}`")
-            st.json(intent_scores, expanded=False)
+                # Consultar SERP via DataForSEO
+                with st.status("Consultando SERP de Google via DataForSEO…", expanded=False):
+                    js = dfs_live_serp(
+                        kw, 
+                        login=config["dfs_login"], 
+                        password=config["dfs_password"],
+                        location_name=config["loc_name"] or config["market"], 
+                        gl=config["gl"] or "", 
+                        hl=config["hl"] or config["lang"],
+                        device=config["device"], 
+                        safe=config["safe"]
+                    )
+                    features = parse_serp_features(js)
+                    organic = features["organic"][:config["top_n"]]
+                    paa = features["paa"]
+                    videos = features["videos"]
+                    ai_overview = features["ai_overview"]
+                    display_results_summary(organic, paa, videos, ai_overview)
 
-            # Scraping de resultados
-            st.info(f"Extrayendo contenido de los top {len(organic)} resultados…")
-            rows = []
-            for i, item in enumerate(organic, 1):
-                url = item.get("url")
-                title = item.get("title")
-                if not url:
-                    continue
-                time.sleep(config["pause"])
-                data = extract_article(url)
-                data["rank"] = i
-                if not data.get("title"):
-                    data["title"] = title
-                rows.append(data)
+                # Análisis de intent
+                intent_label, intent_scores = guess_intent(organic, paa)
+                st.markdown(f"**Intención (heurística)**: `{intent_label}`")
+                st.json(intent_scores, expanded=False)
 
-            df = pd.DataFrame(rows)
-            st.dataframe(df[["rank", "site", "title", "len_words", "has_tables", "has_lists", "url"]])
+                # Scraping de resultados
+                st.info(f"Extrayendo contenido de los top {len(organic)} resultados…")
+                rows = []
+                for i, item in enumerate(organic, 1):
+                    url = item.get("url")
+                    title = item.get("title")
+                    if not url:
+                        continue
+                    time.sleep(config["pause"])
+                    data = extract_article(url)
+                    data["rank"] = i
+                    if not data.get("title"):
+                        data["title"] = title
+                    rows.append(data)
 
-            # Anatomía del contenido
-            display_content_anatomy(df)
+                df = pd.DataFrame(rows)
+                st.dataframe(df[["rank", "site", "title", "len_words", "has_tables", "has_lists", "url"]])
 
-            # Related searches y Autocomplete
-            col1, col2 = st.columns(2)
-            with col1:
-                related = dfs_related_searches(
-                    kw, 
-                    login=config["dfs_login"], 
-                    password=config["dfs_password"], 
-                    location_name=config["loc_name"] or config["market"], 
-                    gl=config["gl"], 
-                    hl=config["hl"]
-                )
-                st.markdown("**Búsquedas relacionadas**")
-                if related:
-                    st.write(related[:15])
-                else:
-                    st.write("(ninguna)")
-            
-            with col2:
-                auto = dfs_autocomplete(
-                    kw, 
-                    login=config["dfs_login"], 
-                    password=config["dfs_password"], 
-                    gl=config["gl"], 
-                    hl=config["hl"]
-                )
-                st.markdown("**Autocompletado**")
-                if auto:
-                    st.write(auto[:15])
-                else:
-                    st.write("(ninguno)")
+                # Anatomía del contenido
+                display_content_anatomy(df)
 
-            # Generar outline
-            outline_md = None
-            if config["use_openai"] and config["openai_key"]:
-                with st.spinner("Generando outline con OpenAI…"):
-                    try:
-                        outline_md = generate_outline_with_openai(
-                            kw,
-                            df=df,
-                            paa=paa,
-                            related=related or auto or [],
-                            ai_overview=ai_overview,
-                            videos=videos,
-                            intent_label=intent_label,
-                            intent_scores=intent_scores,
-                            model=config["openai_model"],
-                            api_key=config["openai_key"],
-                            temperature=config["openai_temperature"],
-                        )
-                    except Exception as e:
-                        st.warning(f"Outline con OpenAI falló ({e}). Usando outline heurístico.")
-                        outline_md = None
-            
-            if not outline_md:
-                outline_md = build_outline(
-                    kw, 
-                    scraped=df, 
-                    paa=paa, 
-                    related=related or auto, 
-                    ai_overview=ai_overview
-                )
+                # Related searches y Autocomplete
+                col1, col2 = st.columns(2)
+                with col1:
+                    related = dfs_related_searches(
+                        kw, 
+                        login=config["dfs_login"], 
+                        password=config["dfs_password"], 
+                        location_name=config["loc_name"] or config["market"], 
+                        gl=config["gl"], 
+                        hl=config["hl"]
+                    )
+                    st.markdown("**Búsquedas relacionadas**")
+                    if related:
+                        st.write(related[:15])
+                    else:
+                        st.write("(ninguna)")
+                
+                with col2:
+                    auto = dfs_autocomplete(
+                        kw, 
+                        login=config["dfs_login"], 
+                        password=config["dfs_password"], 
+                        gl=config["gl"], 
+                        hl=config["hl"]
+                    )
+                    st.markdown("**Autocompletado**")
+                    if auto:
+                        st.write(auto[:15])
+                    else:
+                        st.write("(ninguno)")
 
-            # Mostrar outline
-            st.markdown("### Outline recomendado")
-            st.markdown(outline_md)
+                # Generar outline
+                outline_md = None
+                if config["use_openai"] and config["openai_key"]:
+                    with st.spinner("Generando outline con OpenAI…"):
+                        try:
+                            outline_md = generate_outline_with_openai(
+                                kw,
+                                df=df,
+                                paa=paa,
+                                related=related or auto or [],
+                                ai_overview=ai_overview,
+                                videos=videos,
+                                intent_label=intent_label,
+                                intent_scores=intent_scores,
+                                model=config["openai_model"],
+                                api_key=config["openai_key"],
+                                temperature=config["openai_temperature"],
+                            )
+                        except Exception as e:
+                            st.warning(f"Outline con OpenAI falló ({e}). Usando outline heurístico.")
+                            outline_md = None
+                
+                if not outline_md:
+                    outline_md = build_outline(
+                        kw, 
+                        scraped=df, 
+                        paa=paa, 
+                        related=related or auto, 
+                        ai_overview=ai_overview
+                    )
 
-            # Sugerencias de video
-            display_video_suggestions(videos)
+                # Mostrar outline
+                st.markdown("### Outline recomendado")
+                st.markdown(outline_md)
 
-            # Botones de descarga
-            create_download_buttons(outline_md, df, kw)
+                # Sugerencias de video
+                display_video_suggestions(videos)
+
+                # Botones de descarga
+                create_download_buttons(outline_md, df, kw)
+
+
+if __name__ == "__main__":
+    main()

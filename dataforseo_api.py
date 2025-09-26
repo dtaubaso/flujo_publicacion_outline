@@ -44,7 +44,7 @@ def dfs_related_searches(query: str, *, login: str, password: str, location_name
             "hl": hl,
         }]
         
-        response = client.post("/v3/dataforseo_labs/google/related_searches/live", payload)
+        response = client.post("/v3/dataforseo_labs/google/related_keywords/live", payload)
         out = []
         for task in response.get("tasks", []):
             for rs in task.get("result", []) or []:
@@ -65,7 +65,7 @@ def dfs_autocomplete(query: str, *, login: str, password: str, gl: str, hl: str)
         
         payload = [{"keyword": query, "gl": gl, "hl": hl}]
         
-        response = client.post("/v3/keywords_data/google_autocomplete/live", payload)
+        response = client.post("/v3/serp/google/autocomplete/live/advanced", payload)
         suggests = []
         for task in response.get("tasks", []):
             for res in task.get("result", []) or []:
