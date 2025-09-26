@@ -53,9 +53,9 @@ def main():
     # Ejecutar autenticación
     if not st.user.is_logged_in:
         st.info("🔐 Inicia sesión con tu cuenta corporativa")
-    if st.button("Iniciar Sesión"):
-        st.login()  # Sin parámetros - usa la config de secrets.toml
-    st.stop()
+        if st.button("Iniciar Sesión"):
+            st.login()  # Sin parámetros - usa la config de secrets.toml
+        st.stop()
 
     # Usuario logueado - verificar que sea de tu organización
     user = st.user
