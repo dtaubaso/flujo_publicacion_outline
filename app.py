@@ -42,7 +42,7 @@ from ui_components import (
     display_video_suggestions,
     create_download_links
 )
-
+from utils import authenticate_workspace()
 # ──────────────────────────────────────────────────────────────────────────────
 # UI CONFIG
 
@@ -50,7 +50,9 @@ def main():
     """Función principal de la aplicación Streamlit"""
     logger.info("=== INICIANDO APLICACIÓN ===")
     st.set_page_config(page_title="Generador de outline SEO", page_icon="🧭", layout="wide")
-        
+    # Ejecutar autenticación
+    user = authenticate_workspace()
+    
     # Configurar interfaz
     logger.info("Configurando interfaz de usuario...")
     config = setup_sidebar()
