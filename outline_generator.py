@@ -18,7 +18,7 @@ except Exception:
 def generate_outline_with_openai(keyword: str, *, df: pd.DataFrame, paa: list, 
                                related: list, ai_overview: list, videos: list, 
                                intent_label: str, intent_scores: dict, model: str, 
-                               api_key: str, temperature: float = 0.4) -> str:
+                               api_key: str, temperature: float = None) -> str:
     """Genera outline usando OpenAI"""
     if not (OpenAI and api_key):
         raise RuntimeError("OpenAI SDK not available or API key missing")
@@ -45,14 +45,20 @@ def generate_outline_with_openai(keyword: str, *, df: pd.DataFrame, paa: list,
         }
     }
 
-    resp = client.responses.create(
-        model=model,
-        temperature=temperature,
-        input=[
+    # Construir parámetros para la llamada a OpenAI
+    api_params = {
+        "model": model,
+        "input": [
             {"role": "system", "content": OPENAI_SYSTEM_PROMPT},
             {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}
         ],
-    )
+    }
+    
+    # Solo agregar temperature si el modelo lo soporta
+    if temperature is not None:
+        api_params["temperature"] = temperature
+
+    resp = client.responses.create(**api_params)
 
     # Extraer contenido del texto (soporta nueva estructura SDK)
     try:

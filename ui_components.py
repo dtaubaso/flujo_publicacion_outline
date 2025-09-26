@@ -3,7 +3,7 @@
 
 import os
 import streamlit as st
-from config import DEFAULT_CONFIG
+from config import DEFAULT_CONFIG, OPENAI_NO_TEMPERATURE_MODELS, COUNTRY_ISO_TO_NAME
 
 
 def setup_sidebar():
@@ -26,26 +26,46 @@ def setup_sidebar():
         openai_key = st.text_input("OPENAI_API_KEY", value=os.getenv("OPENAI_API_KEY", ""), 
                                  type="password")
         openai_model = st.text_input("Model", value=os.getenv("OPENAI_MODEL", DEFAULT_CONFIG["openai_model"]))
-        openai_temperature = st.slider("Temperature", 0.0, 1.2, DEFAULT_CONFIG["openai_temperature"], 0.1)
+        
+        # Verificar si el modelo soporta temperature
+        model_supports_temperature = not any(no_temp_model in openai_model.lower() 
+                                           for no_temp_model in OPENAI_NO_TEMPERATURE_MODELS)
+        
+        if model_supports_temperature:
+            openai_temperature = st.slider("Temperature", 0.0, 1.2, DEFAULT_CONFIG["openai_temperature"], 0.1)
+        else:
+            st.info(f"ℹ️ El modelo {openai_model} no soporta el parámetro 'temperature'")
+            openai_temperature = None
+            
         use_openai = st.toggle("Use OpenAI to generate the outline", 
                              value=bool(os.getenv("OPENAI_API_KEY") or ""))
 
         # Parámetros de búsqueda
-        st.subheader("Search parameters")
-        market = st.text_input("Market / Location", value=DEFAULT_CONFIG["market"])
-        lang = st.text_input("Interface language (hl)", value=DEFAULT_CONFIG["lang"])
-        device = st.selectbox("Device", ["desktop", "mobile"], index=0)
-        top_n = st.slider("Top results to analyze", 3, 20, DEFAULT_CONFIG["top_n"])
+        st.subheader("Parámetros de búsqueda")
+        
+        # Configuración de mercado
+        st.markdown("**Ubicación y idioma:**")
+        country_iso_code = st.text_input("Código de país (ISO)", value=DEFAULT_CONFIG["country_iso_code"], help="Ej: AR para Argentina, US para Estados Unidos")
+        lang_iso_code = st.text_input("Código de idioma (ISO)", value=DEFAULT_CONFIG["lang_iso_code"], help="Ej: es para español, en para inglés")
+        
+        # Configuración técnica
+        device = st.selectbox("Dispositivo", ["desktop", "mobile"], index=0)
+        top_n = st.slider("Top resultados a analizar", 3, 20, DEFAULT_CONFIG["top_n"])
 
         # Opciones avanzadas
-        with st.expander("Opciones avanzadas"):
-            safe = st.selectbox("Safe search", ["off", "moderate", "strict"], index=0)
-            gl = st.text_input("gl (código de país)", value=DEFAULT_CONFIG["gl"])
-            hl = st.text_input("hl (código de idioma)", value=lang)
-            loc_name = st.text_input("location_name exacto (DataForSEO)", value=market)
+        with st.expander("Configuración avanzada"):
+            language_code = st.text_input("language_code (DataForSEO)", value=DEFAULT_CONFIG["language_code"], help="Ej: es-AR para español de Argentina")
+            safe = st.selectbox("Búsqueda segura", ["off", "moderate", "strict"], index=0)
             pause = st.number_input("Pausa entre peticiones (segundos)", 
                                   min_value=0.0, value=DEFAULT_CONFIG["pause"], step=0.1)
+            
+            st.markdown("**Para compatibilidad con APIs legacy:**")
+            gl = st.text_input("gl (Google API - código de país)", value=country_iso_code)
+            hl = st.text_input("hl (Google API - código de idioma)", value=lang_iso_code)
 
+    # Obtener el nombre completo del país para DataForSEO
+    location_name = COUNTRY_ISO_TO_NAME.get(country_iso_code, "Argentina")
+    
     return {
         "dfs_login": dfs_login,
         "dfs_password": dfs_password,
@@ -53,14 +73,15 @@ def setup_sidebar():
         "openai_model": openai_model,
         "openai_temperature": openai_temperature,
         "use_openai": use_openai,
-        "market": market,
-        "lang": lang,
+        "country_iso_code": country_iso_code,
+        "lang_iso_code": lang_iso_code,
+        "language_code": language_code,
+        "location_name": location_name,  # Nombre completo para DataForSEO
         "device": device,
         "top_n": top_n,
         "safe": safe,
         "gl": gl,
         "hl": hl,
-        "loc_name": loc_name,
         "pause": pause,
     }
 

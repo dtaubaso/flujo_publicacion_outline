@@ -5,7 +5,7 @@ streamlit>=1.37
 requests
 beautifulsoup4
 lxml
-trafilatura
+curl_cffi
 scikit-learn
 pandas
 numpy

@@ -10,23 +10,50 @@ USER_AGENTS = [
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
 ]
 
-# URLs de APIs de DataForSEO
-DATAFORSEO_SERP_URL = "https://api.dataforseo.com/v3/serp/google/organic/live/advanced"
-DATAFORSEO_RELATED_URL = "https://api.dataforseo.com/v3/dataforseo_labs/google/related_keywords/live"
-DATAFORSEO_AUTOCOMPLETE_URL = "https://api.dataforseo.com/v3/keywords_data/google_autocomplete/live"
+# Mapeo de códigos ISO de país a nombres completos para DataForSEO
+COUNTRY_ISO_TO_NAME = {
+    "AR": "Argentina",
+    "US": "United States", 
+    "ES": "Spain",
+    "MX": "Mexico",
+    "CO": "Colombia",
+    "CL": "Chile",
+    "PE": "Peru",
+    "VE": "Venezuela",
+    "EC": "Ecuador",
+    "BO": "Bolivia",
+    "UY": "Uruguay",
+    "PY": "Paraguay",
+    "BR": "Brazil",
+    "GB": "United Kingdom",
+    "DE": "Germany",
+    "FR": "France",
+    "IT": "Italy",
+    "CA": "Canada",
+    "AU": "Australia"
+}
+
+
 
 # Configuración por defecto
 DEFAULT_CONFIG = {
-    "market": "Argentina",
-    "lang": "es",
+    "language_code": "es",  # Código de idioma para DataForSEO
+    "country_iso_code": "AR",  # Código ISO para Google Autocomplete
+    "lang_iso_code": "es-419",  # Código ISO de idioma para Google Autocomplete
     "device": "desktop",
     "top_n": 5,
     "safe": "off",
-    "gl": "ar",
     "pause": 0.8,
-    "openai_model": "gpt-4.1",
+    "openai_model": "gpt-5-nano",
     "openai_temperature": 0.4,
 }
+
+# Modelos de OpenAI que NO soportan temperature
+OPENAI_NO_TEMPERATURE_MODELS = [
+    "o1", "o1-preview", "o1-mini",
+    "o5", "o5-preview", "o5-mini",
+    "gpt-5", "gpt-5-nano", "gpt-5-preview"
+]
 
 # Configuración de OpenAI
 OPENAI_SYSTEM_PROMPT = """Eres un editor SEO especializado en contenido informativo y evergreen. 
@@ -36,7 +63,7 @@ produce un outline de contenido superior en Markdown limpio. Incluye:
 2) Tipos de contenido (multimedia) a incluir.
 3) Longitud recomendada (justifica brevemente).
 4) Anatomía del contenido (tablas, listas, comparaciones, FAQs).
-5) Outline con H2/H3/H4.
+5) Outline con H2/H3.
 6) Gaps de contenido vs top resultados.
 7) N-gramas que aparecen frecuentemente en títulos (top 10).
 8) Preguntas a responder (de PAA).

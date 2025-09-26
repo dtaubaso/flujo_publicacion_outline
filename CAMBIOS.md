@@ -11,7 +11,7 @@
 - Incorporado `dfs_client.py` existente con la clase `RestClient`
 - Actualizado `dataforseo_api.py` para usar `RestClient` en lugar de `requests` directo
 - Mantenida toda la funcionalidad de caché de Streamlit (`@st.cache_data`)
-- Conservadas las funciones `parse_serp_features`, `dfs_related_searches` y `dfs_autocomplete`
+- Conservadas las funciones `parse_serp_features` y agregada `get_autocomplete` que usa la API de Google directamente
 
 ### 3. **Interfaz de usuario en español**
 - Actualizado `app.py`:
