@@ -40,7 +40,7 @@ from ui_components import (
     display_results_summary,
     display_content_anatomy,
     display_video_suggestions,
-    create_download_link
+    create_download_links
 )
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -263,7 +263,7 @@ def main():
 
                 # Botones de descarga (con sugerencias de video incluidas)
                 logger.info("Creando botones de descarga...")
-                create_download_link(full_outline_md, df, kw)
+                create_download_links(full_outline_md, df, kw)
                 
                 logger.info(f"=== PROCESAMIENTO COMPLETADO PARA: {kw} ===")
 
