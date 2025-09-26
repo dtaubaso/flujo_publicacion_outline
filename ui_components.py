@@ -145,7 +145,7 @@ def create_download_links(outline_md, df, keyword):
     # csv link
     csv = df.to_csv(index=False, encoding='utf-8')
     b64_csv = base64.b64encode(csv.encode()).decode()
-    href = f'<a href="data:file/csv;base64,{b64_csv}" download="kw_for_site_{clean_kw}_{int(time.time())}.csv">Descargar como CSV</a>'
+    href = f'<a href="data:file/csv;base64,{b64_csv}" download="outline_{clean_kw}_{int(time.time())}.csv">Descargar como CSV</a>'
     st.markdown(href, unsafe_allow_html=True)
 
     # markdown link
