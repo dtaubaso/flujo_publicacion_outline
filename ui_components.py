@@ -38,7 +38,7 @@ def setup_sidebar():
             openai_temperature = None
             
         use_openai = st.toggle("Use OpenAI to generate the outline", 
-                             value=bool(os.getenv("OPENAI_API_KEY") or ""))
+                             value=True)
 
         # Parámetros de búsqueda
         st.subheader("Parámetros de búsqueda")
