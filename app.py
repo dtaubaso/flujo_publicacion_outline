@@ -42,7 +42,7 @@ from ui_components import (
     display_video_suggestions,
     create_download_links
 )
-from utils import authenticate_workspace
+
 # ──────────────────────────────────────────────────────────────────────────────
 # UI CONFIG
 
@@ -51,7 +51,17 @@ def main():
     logger.info("=== INICIANDO APLICACIÓN ===")
     st.set_page_config(page_title="Generador de outline SEO", page_icon="🧭", layout="wide")
     # Ejecutar autenticación
-    user = authenticate_workspace()
+    if not st.user.is_logged_in:
+        st.info("🔐 Inicia sesión con tu cuenta corporativa")
+    if st.button("Iniciar Sesión"):
+        st.login()  # Sin parámetros - usa la config de secrets.toml
+    st.stop()
+
+    # Usuario logueado - verificar que sea de tu organización
+    user = st.user
+    if not user.email.endswith(f"@{st.secrets['auth']['hosted_domain']}"):
+        st.error("Solo usuarios de nomadic pueden acceder")
+        st.stop()
     
     # Configurar interfaz
     logger.info("Configurando interfaz de usuario...")
