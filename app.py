@@ -50,26 +50,7 @@ def main():
     """Función principal de la aplicación Streamlit"""
     logger.info("=== INICIANDO APLICACIÓN ===")
     st.set_page_config(page_title="Generador de outline SEO", page_icon="🧭", layout="wide")
-    if not st.login():
-        st.stop()
-    user_info = st.context.user
-    # Leer dominios permitidos desde secrets
-    try:
-        allowed_domains = st.secrets["auth"]["allowed_domains"]
-        email_domain = user_info.email.split('@')[1]
-        if email_domain not in allowed_domains:
-            st.error("🚫 Acceso restringido")
-        if email_domain not in allowed_domains:
-            st.error("🚫 Acceso restringido")
-            st.info(f"Dominios permitidos: {', '.join(allowed_domains)}")
-            if st.button("Cerrar sesión"):
-                st.logout()
-            st.stop()
-
-    except KeyError:
-        st.error("Error de configuración - contacta al administrador")
-        st.stop()
-        allowed_domains = []
+        
     # Configurar interfaz
     logger.info("Configurando interfaz de usuario...")
     config = setup_sidebar()
