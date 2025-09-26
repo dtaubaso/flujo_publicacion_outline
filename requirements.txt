@@ -10,3 +10,4 @@ scikit-learn
 pandas
 numpy
 openai>=1.40.0
+Authlib
