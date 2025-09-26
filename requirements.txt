@@ -1,0 +1,13 @@
+# requirements.txt
+# Dependencias del proyecto
+
+streamlit>=1.37
+requests
+beautifulsoup4
+lxml
+trafilatura
+scikit-learn
+tldextract
+pandas
+numpy
+openai>=1.40.0
