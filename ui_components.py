@@ -1,7 +1,7 @@
 # ui_components.py
 # Componentes de interfaz de usuario de Streamlit
 
-import os
+import os, time, base64, re
 import streamlit as st
 from config import DEFAULT_CONFIG, OPENAI_NO_TEMPERATURE_MODELS, COUNTRY_ISO_TO_NAME
 
@@ -138,22 +138,17 @@ def display_video_suggestions(videos):
                 st.write(f"- {v.get('title')}: {url}")
 
 
-def create_download_buttons(outline_md, df, keyword):
+def create_download_links(outline_md, df, keyword):
     """Crea botones de descarga"""
-    import re
     
     clean_kw = re.sub(r'[^a-zA-Z0-9]+','_', keyword)
-    
-    st.download_button(
-        "Descargar outline (Markdown)",
-        data=outline_md,
-        file_name=f"outline_{clean_kw}.md",
-        mime="text/markdown",
-    )
-    
-    st.download_button(
-        "Descargar dataset extraído (CSV)",
-        data=df.to_csv(index=False),
-        file_name=f"scraped_{clean_kw}.csv",
-        mime="text/csv",
-    )
+    # csv link
+    csv = df.to_csv(index=False, encoding='utf-8')
+    b64_csv = base64.b64encode(csv.encode()).decode()
+    href = f'<a href="data:file/csv;base64,{b64_csv}" download="kw_for_site_{clean_kw}_{int(time.time())}.csv">Descargar como CSV</a>'
+    st.markdown(href, unsafe_allow_html=True)
+
+    # markdown link
+    b64_md = base64.b64encode(outline_md.encode()).decode()
+    href_md = f'<a href="data:file/markdown;base64,{b64_md}" download="outline_{clean_kw}_{int(time.time())}.md">Descargar como Markdown</a>'
+    st.markdown(href_md, unsafe_allow_html=True)
