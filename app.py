@@ -42,7 +42,7 @@ from ui_components import (
     display_video_suggestions,
     create_download_links
 )
-from utils import authenticate_workspace()
+from utils import authenticate_workspace
 # ──────────────────────────────────────────────────────────────────────────────
 # UI CONFIG
 
