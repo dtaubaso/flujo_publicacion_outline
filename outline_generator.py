@@ -15,6 +15,33 @@ except Exception:
     OpenAI = None
 
 
+def generate_video_suggestions_markdown(videos: List[dict]) -> str:
+    """Genera markdown de sugerencias de video"""
+    if not videos:
+        return ""
+    
+    lines = []
+    lines.append("## 📹 Sugerencias de Video (encontradas en SERP)")
+    lines.append("")
+    
+    for i, video in enumerate(videos[:5], 1):
+        title = video.get("title", "Sin título")
+        url = video.get("url", "")
+        if url:
+            lines.append(f"### {i}. {title}")
+            lines.append(f"**URL**: {url}")
+            if "youtube.com" in url:
+                lines.append("**Tipo**: YouTube video")
+            else:
+                lines.append("**Tipo**: Video externo")
+            lines.append("")
+    
+    lines.append("**💡 Recomendación**: Analizar estos videos para identificar oportunidades de crear contenido similar o superior.")
+    lines.append("")
+    
+    return "\n".join(lines)
+
+
 def generate_outline_with_openai(keyword: str, *, df: pd.DataFrame, paa: list, 
                                related: list, ai_overview: list, videos: list, 
                                intent_label: str, intent_scores: dict, model: str, 
@@ -71,7 +98,7 @@ def generate_outline_with_openai(keyword: str, *, df: pd.DataFrame, paa: list,
 
 
 def build_outline(keyword: str, *, scraped: pd.DataFrame, paa: List[str], 
-                 related: List[str], ai_overview: List[str]) -> str:
+                 related: List[str], ai_overview: List[str], videos: List[dict] = None) -> str:
     """Compose a Markdown outline: H2/H3, PAA, gaps, multimedia suggestions."""
     titles = [t for t in scraped["title"].dropna().tolist() if t]
     heads2 = [h for arr in scraped["h2"].dropna().tolist() for h in (arr or [])]
@@ -128,8 +155,30 @@ def build_outline(keyword: str, *, scraped: pd.DataFrame, paa: List[str],
 
     # Sugerencia multimedia
     lines.append("\n## Multimedia")
-    lines.append("- Incluir video de YouTube si está en SERP o agrega valor (review/demostración)")
-    lines.append("- Imágenes propias o comparativas según el tipo de contenido")
+    
+    # Sugerencias específicas de video encontradas en SERP
+    if videos:
+        lines.append("\n### Contenido de video sugerido (encontrado en SERP)")
+        for i, video in enumerate(videos[:5], 1):
+            title = video.get("title", "Sin título")
+            url = video.get("url", "")
+            if url:
+                lines.append(f"{i}. **{title}**")
+                lines.append(f"   - URL: {url}")
+                if "youtube.com" in url:
+                    lines.append(f"   - Tipo: YouTube video")
+                else:
+                    lines.append(f"   - Tipo: Video externo")
+                lines.append("")
+    
+    # Sugerencias generales de multimedia
+    lines.append("### Estrategia multimedia general")
+    if videos:
+        lines.append("- ✅ **Videos encontrados en SERP** - Considerar crear contenido similar o de mayor calidad")
+    else:
+        lines.append("- **Videos**: No se encontraron videos en SERP, oportunidad para contenido original")
+    lines.append("- **Imágenes**: Incluir capturas, infografías o comparativas según el tipo de contenido")
+    lines.append("- **Elementos interactivos**: Tablas, listas numeradas, bullets para mejor legibilidad")
 
     # Content gaps heurístico
     lines.append("\n## Content gaps (heurístico)")

@@ -63,10 +63,10 @@ produce un outline de contenido superior en Markdown limpio. Incluye:
 2) Tipos de contenido (multimedia) a incluir.
 3) Longitud recomendada (justifica brevemente).
 4) Anatomía del contenido (tablas, listas, comparaciones, FAQs).
-5) Outline con H2/H3.
+5) Outline con subtítulos H2 (con formato de subtítulo real SEO, no una "idea").
 6) Gaps de contenido vs top resultados.
 7) N-gramas que aparecen frecuentemente en títulos (top 10).
 8) Preguntas a responder (de PAA).
 9) Búsquedas relacionadas y Autocomplete a cubrir como subtemas.
 10) Si hay presencia de YouTube/video, sugiere dónde encaja.
-Sé conciso y concreto. Evita relleno. Responde SIEMPRE en español."""
+Sé conciso y concreto. Evita relleno. Responde SIEMPRE en español. No des preguntas de seguimiento, es una respuesta cerrada"""

@@ -33,7 +33,7 @@ from dataforseo_api import dfs_live_serp, get_autocomplete, parse_serp_features
 from dfs_client import RestClient
 from scraper import extract_article
 from analytics import guess_intent, analyze_content_structure
-from outline_generator import generate_outline_with_openai, build_outline
+from outline_generator import generate_outline_with_openai, build_outline, generate_video_suggestions_markdown
 from ui_components import (
     setup_sidebar, 
     setup_main_input, 
@@ -241,10 +241,17 @@ def main():
                         scraped=df, 
                         paa=paa, 
                         related=related or auto, 
-                        ai_overview=ai_overview
+                        ai_overview=ai_overview,
+                        videos=videos
                     )
                     logger.info(f"Outline generado con método heurístico: {len(outline_md)} caracteres")
 
+                # Agregar sugerencias de video al markdown para exportación
+                video_suggestions_md = generate_video_suggestions_markdown(videos)
+                full_outline_md = outline_md
+                if video_suggestions_md:
+                    full_outline_md += "\n\n" + video_suggestions_md
+                
                 # Mostrar outline
                 logger.info("Mostrando outline final...")
                 st.markdown("### Outline recomendado")
@@ -254,9 +261,9 @@ def main():
                 logger.info(f"Mostrando sugerencias de video: {len(videos)} videos")
                 display_video_suggestions(videos)
 
-                # Botones de descarga
+                # Botones de descarga (con sugerencias de video incluidas)
                 logger.info("Creando botones de descarga...")
-                create_download_buttons(outline_md, df, kw)
+                create_download_buttons(full_outline_md, df, kw)
                 
                 logger.info(f"=== PROCESAMIENTO COMPLETADO PARA: {kw} ===")
 
