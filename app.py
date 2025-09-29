@@ -346,77 +346,82 @@ def main():
                     - ⚠️ Requiere edición manual posterior
                     """)
                 
-                col1, col2 = st.columns(2)
+                # Selector de tipo de artículo (sin botones)
+                article_option = st.radio(
+                    "Selecciona el tipo de artículo a generar:",
+                    ["No generar artículo", "✨ Artículo con IA (OpenAI)", "📝 Artículo Básico (Heurístico)"],
+                    index=0,
+                    help="El artículo se generará automáticamente al seleccionar una opción"
+                )
                 
-                with col1:
-                    if st.button("✨ Artículo con IA (OpenAI)", type="primary", help="Usa OpenAI para crear un artículo completo de alta calidad"):
-                        if config["use_openai"] and config["openai_key"]:
-                            logger.info("Generando artículo completo con OpenAI...")
-                            with st.spinner("Generando artículo completo con IA... Esto puede tomar varios minutos ⏳"):
-                                try:
-                                    article_content = generate_article_with_openai(
-                                        kw,
-                                        outline=outline_md,
-                                        df=df,
-                                        paa=paa,
-                                        related=related or auto or [],
-                                        ai_overview=ai_overview,
-                                        videos=videos,
-                                        top_stories=top_stories,
-                                        related_searches=related_searches,
-                                        images=images,
-                                        twitter=twitter,
-                                        carousel=carousel,
-                                        knowledge_graph=knowledge_graph,
-                                        intent_label=intent_label,
-                                        intent_scores=intent_scores,
-                                        model=config["openai_model"],
-                                        api_key=config["openai_key"],
-                                        temperature=config["openai_temperature"],
-                                    )
-                                    
-                                    logger.info(f"Artículo generado con IA: {len(article_content)} caracteres")
-                                    
-                                    # Mostrar el artículo generado
-                                    st.success("✅ ¡Artículo generado exitosamente con IA!")
-                                    st.markdown("### 📄 Artículo Completo (Generado con IA)")
-                                    st.markdown(article_content)
-                                    
-                                    # Botón de descarga para el artículo
-                                    create_article_download_button(article_content, kw, "ia")
-                                    
-                                except Exception as e:
-                                    logger.error(f"Error generando artículo con IA: {str(e)}")
-                                    st.error(f"❌ Error generando artículo con IA: {str(e)}")
-                        else:
-                            st.warning("⚠️ Para generar artículos con IA necesitas configurar OpenAI en la barra lateral")
-                
-                with col2:
-                    if st.button("📝 Artículo Básico (Heurístico)", help="Genera un artículo básico usando el contenido scrapeado"):
-                        logger.info("Generando artículo básico con método heurístico...")
-                        with st.spinner("Generando artículo básico... ⏳"):
+                # Generar artículo según la selección (sin botones)
+                if article_option == "✨ Artículo con IA (OpenAI)":
+                    if config["use_openai"] and config["openai_key"]:
+                        logger.info("Generando artículo completo con OpenAI...")
+                        with st.spinner("Generando artículo completo con IA... Esto puede tomar varios minutos ⏳"):
                             try:
-                                article_content = generate_article_heuristic(
+                                article_content = generate_article_with_openai(
                                     kw,
                                     outline=outline_md,
                                     df=df,
                                     paa=paa,
-                                    related=related or auto or []
+                                    related=related or auto or [],
+                                    ai_overview=ai_overview,
+                                    videos=videos,
+                                    top_stories=top_stories,
+                                    related_searches=related_searches,
+                                    images=images,
+                                    twitter=twitter,
+                                    carousel=carousel,
+                                    knowledge_graph=knowledge_graph,
+                                    intent_label=intent_label,
+                                    intent_scores=intent_scores,
+                                    model=config["openai_model"],
+                                    api_key=config["openai_key"],
+                                    temperature=config["openai_temperature"],
                                 )
                                 
-                                logger.info(f"Artículo generado heurísticamente: {len(article_content)} caracteres")
+                                logger.info(f"Artículo generado con IA: {len(article_content)} caracteres")
                                 
                                 # Mostrar el artículo generado
-                                st.success("✅ ¡Artículo básico generado exitosamente!")
-                                st.markdown("### 📄 Artículo Básico (Generado Heurísticamente)")
+                                st.success("✅ ¡Artículo generado exitosamente con IA!")
+                                st.markdown("### 📄 Artículo Completo (Generado con IA)")
                                 st.markdown(article_content)
                                 
                                 # Botón de descarga para el artículo
-                                create_article_download_button(article_content, kw, "basico")
+                                create_article_download_button(article_content, kw, "ia")
                                 
                             except Exception as e:
-                                logger.error(f"Error generando artículo básico: {str(e)}")
-                                st.error(f"❌ Error generando artículo básico: {str(e)}")
+                                logger.error(f"Error generando artículo con IA: {str(e)}")
+                                st.error(f"❌ Error generando artículo con IA: {str(e)}")
+                    else:
+                        st.warning("⚠️ Para generar artículos con IA necesitas configurar OpenAI en la barra lateral")
+                
+                elif article_option == "📝 Artículo Básico (Heurístico)":
+                    logger.info("Generando artículo básico con método heurístico...")
+                    with st.spinner("Generando artículo básico... ⏳"):
+                        try:
+                            article_content = generate_article_heuristic(
+                                kw,
+                                outline=outline_md,
+                                df=df,
+                                paa=paa,
+                                related=related or auto or []
+                            )
+                            
+                            logger.info(f"Artículo generado heurísticamente: {len(article_content)} caracteres")
+                            
+                            # Mostrar el artículo generado
+                            st.success("✅ ¡Artículo básico generado exitosamente!")
+                            st.markdown("### 📄 Artículo Básico (Generado Heurísticamente)")
+                            st.markdown(article_content)
+                            
+                            # Botón de descarga para el artículo
+                            create_article_download_button(article_content, kw, "basico")
+                            
+                        except Exception as e:
+                            logger.error(f"Error generando artículo básico: {str(e)}")
+                            st.error(f"❌ Error generando artículo básico: {str(e)}")
                 
                 logger.info(f"=== PROCESAMIENTO COMPLETADO PARA: {kw} ===")
 
