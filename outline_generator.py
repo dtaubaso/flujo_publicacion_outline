@@ -7,7 +7,7 @@ from typing import List, Dict, Any
 import pandas as pd
 import numpy as np
 from analytics import ngrams_top
-from config import OPENAI_SYSTEM_PROMPT
+from config import OPENAI_SYSTEM_PROMPT, OPENAI_ARTICLE_PROMPT
 
 try:
     from openai import OpenAI
@@ -271,3 +271,131 @@ def build_outline(keyword: str, *, scraped: pd.DataFrame, paa: List[str],
         lines.append("- Agregar sección de pros y contras resumida")
 
     return "\n".join(lines)
+
+
+def generate_article_with_openai(keyword: str, outline: str, *, df: pd.DataFrame, 
+                                paa: list, related: list, ai_overview: list, videos: list, 
+                                top_stories: list = None, related_searches: list = None, 
+                                images: list = None, twitter: list = None, carousel: list = None, 
+                                knowledge_graph: list = None, intent_label: str, intent_scores: dict, 
+                                model: str, api_key: str, temperature: float = None) -> str:
+    """Genera artículo completo usando OpenAI basándose en el outline"""
+    if not (OpenAI and api_key):
+        raise RuntimeError("OpenAI SDK not available or API key missing")
+    
+    client = OpenAI(api_key=api_key)
+
+    # Preparar contexto para el artículo
+    article_context = {
+        "keyword": keyword,
+        "outline": outline,
+        "intent": {"label": intent_label, "scores": intent_scores},
+        "serp_context": {
+            "paa": paa[:20],
+            "related": (related or [])[:20],
+            "ai_overview_present": bool(ai_overview),
+            "videos": videos[:5],
+            "top_stories": (top_stories or [])[:5],
+            "related_searches": (related_searches or [])[:20],
+            "images": (images or [])[:10],
+            "twitter": (twitter or [])[:5],
+            "carousel": (carousel or [])[:5],
+            "knowledge_graph": (knowledge_graph or [])[:5],
+        },
+        "competitor_insights": {
+            "median_length_words": int(df["len_words"].replace(0, np.nan).median(skipna=True) or 0),
+            "common_sections": [h for arr in df["h2"].dropna().tolist() for h in (arr or [])][:20],
+            "top_titles": [t for t in df["title"].dropna().tolist() if t][:10],
+            "content_gaps": "Análisis de contenido competidor incluido en scraping"
+        }
+    }
+
+    # Construir parámetros para la llamada a OpenAI
+    api_params = {
+        "model": model,
+        "input": [
+            {"role": "system", "content": OPENAI_ARTICLE_PROMPT},
+            {"role": "user", "content": json.dumps(article_context, ensure_ascii=False)}
+        ],
+    }
+    
+    # Solo agregar temperature si el modelo lo soporta
+    if temperature is not None:
+        api_params["temperature"] = temperature
+
+    resp = client.responses.create(**api_params)
+
+    # Extraer contenido del texto
+    if hasattr(resp, 'content') and resp.content:
+        return resp.content[0].text if hasattr(resp.content[0], 'text') else str(resp.content[0])
+    elif hasattr(resp, 'choices') and resp.choices:
+        return resp.choices[0].message.content
+    else:
+        raise RuntimeError("Unexpected response format from OpenAI API")
+
+
+def generate_article_heuristic(keyword: str, outline: str, *, df: pd.DataFrame, 
+                              paa: list, related: list) -> str:
+    """Genera artículo básico usando método heurístico"""
+    
+    # Extraer contenido útil del scraping
+    all_content = []
+    for text in df["text"].dropna():
+        if len(text) > 100:  # Solo textos sustanciales
+            all_content.append(text[:500])  # Primeras 500 caracteres
+    
+    article_lines = []
+    article_lines.append(f"# {keyword.title()}")
+    article_lines.append("")
+    
+    # Introducción básica
+    article_lines.append("## Introducción")
+    article_lines.append(f"En este artículo exploraremos todo lo que necesitas saber sobre {keyword}. "
+                         f"Analizaremos los aspectos más importantes y te proporcionaremos información "
+                         f"valiosa basada en las mejores fuentes disponibles.")
+    article_lines.append("")
+    
+    # Procesar el outline para expandir cada sección
+    outline_lines = outline.split('\n')
+    current_section = ""
+    
+    for line in outline_lines:
+        if line.startswith('## '):
+            current_section = line
+            article_lines.append(current_section)
+            article_lines.append("")
+            # Agregar contenido básico para cada H2
+            article_lines.append(f"Esta sección sobre {line[3:].lower()} es fundamental para entender {keyword}. "
+                                f"Basándose en el análisis de las mejores fuentes, aquí encontrarás "
+                                f"información relevante y actualizada.")
+            article_lines.append("")
+            
+        elif line.startswith('### '):
+            article_lines.append(line)
+            article_lines.append("")
+            # Agregar contenido básico para cada H3
+            section_topic = line[4:].lower()
+            article_lines.append(f"Respecto a {section_topic}, es importante considerar varios factores. "
+                                f"Los expertos sugieren que este aspecto de {keyword} requiere "
+                                f"atención especial para obtener los mejores resultados.")
+            article_lines.append("")
+    
+    # Agregar sección de preguntas frecuentes si hay PAA
+    if paa:
+        article_lines.append("## Preguntas Frecuentes")
+        article_lines.append("")
+        for i, question in enumerate(paa[:5], 1):
+            article_lines.append(f"### {question}")
+            article_lines.append(f"Esta es una pregunta común sobre {keyword}. La respuesta depende de "
+                                f"varios factores específicos que debes considerar según tu situación particular.")
+            article_lines.append("")
+    
+    # Conclusión
+    article_lines.append("## Conclusión")
+    article_lines.append(f"En resumen, {keyword} es un tema que requiere considerar múltiples aspectos. "
+                        f"Esperamos que esta guía te haya proporcionado la información necesaria para "
+                        f"tomar decisiones informadas. Para obtener los mejores resultados, te recomendamos "
+                        f"consultar fuentes adicionales y mantenerte actualizado sobre las últimas novedades.")
+    article_lines.append("")
+    
+    return "\n".join(article_lines)

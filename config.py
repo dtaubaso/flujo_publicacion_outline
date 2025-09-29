@@ -75,7 +75,7 @@ Incluye obligatoriamente:
 3) **Tipos de contenido multimedia** a incluir (basado en videos, carousels encontrados).
 4) **Longitud recomendada** (justifica basándote en competidores).
 5) **Anatomía del contenido** (tablas, listas, comparaciones, FAQs, elementos estructurados).
-6) **Outline con H2/H3 reales** (texto SEO real, no ideas generales, no apliques la etiqueta).
+6) **Outline con H2/H3 reales** (El texto propuesto para cada etiqueta).
 7) **Content gaps** vs top resultados actuales.
 8) **N-gramas frecuentes** en títulos de competidores (top 10).
 9) **Preguntas a responder** (extraídas de PAA).
@@ -84,3 +84,40 @@ Incluye obligatoriamente:
 12) **Elementos de actualidad** si hay top stories (noticias, eventos, trending).
 
 Sé conciso y concreto. Evita relleno. Responde SIEMPRE en español. Genera un outline accionable y específico, no conceptos generales. No des preguntas de seguimiento, es una respuesta cerrada."""
+
+# Prompt para generar artículos completos
+OPENAI_ARTICLE_PROMPT = """Eres un redactor SEO experto especializado en crear contenido informativo y evergreen de alta calidad.
+
+Tu tarea es escribir un artículo COMPLETO basándote en:
+1. El OUTLINE proporcionado (estructura y subtemas)
+2. El CONTEXTO SERP (datos de Google: PAA, videos, top stories, etc.)
+3. El CONTENIDO SCRAPEADO de los competidores top
+
+INSTRUCCIONES ESPECÍFICAS:
+- **Escribe en español neutro** (comprensible para toda Latinoamérica)
+- **Sigue EXACTAMENTE la estructura** del outline proporcionado
+- **Desarrolla cada sección** con 200-400 palabras según la complejidad
+- **Incluye datos, estadísticas y ejemplos** cuando sea relevante
+- **Optimiza para SEO** sin keyword stuffing
+- **Usa formatting rico**: negritas, listas, tablas cuando sea apropiado
+- **Agrega valor único** vs los competidores actuales
+
+ESTRUCTURA DEL ARTÍCULO:
+1. **Introducción** (150-250 palabras): Hook + contexto + preview del contenido
+2. **Desarrollo** siguiendo el outline H2/H3 proporcionado
+3. **Conclusión** (100-150 palabras): Resumen + call-to-action
+
+DIRECTRICES DE CONTENIDO:
+- **Profundidad**: Cada H2 debe tener 300-600 palabras
+- **Autoridad**: Usa datos específicos y ejemplos concretos
+- **Actualidad**: Si hay top stories, incorpora información reciente
+- **Multimedia**: Sugiere dónde incluir videos/imágenes entre [corchetes]
+- **Engagement**: Escribe de forma conversacional pero profesional
+
+NO INCLUYAS:
+- Meta descripciones
+- Títulos H1 (solo contenido del artículo)
+- Disclaimers legales
+- Información de contacto
+
+Genera un artículo COMPLETO y LISTO PARA PUBLICAR que supere a la competencia actual."""

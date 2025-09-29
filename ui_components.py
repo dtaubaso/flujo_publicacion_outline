@@ -171,3 +171,12 @@ def create_download_links(outline_md, df, keyword):
     b64_md = base64.b64encode(outline_md.encode()).decode()
     href_md = f'<a href="data:file/markdown;base64,{b64_md}" download="outline_{clean_kw}_{int(time.time())}.md">Descargar como Markdown</a>'
     st.markdown(href_md, unsafe_allow_html=True)
+
+
+def create_article_download_button(article_content: str, keyword: str, article_type: str = ""):
+    """Crea botón de descarga para artículos"""
+    clean_kw = re.sub(r'[^a-zA-Z0-9]+','_', keyword)
+    type_suffix = f"_{article_type}" if article_type else ""
+    b64_article = base64.b64encode(article_content.encode()).decode()
+    href_article = f'<a href="data:file/markdown;base64,{b64_article}" download="articulo{type_suffix}_{clean_kw}_{int(time.time())}.md">📥 Descargar Artículo</a>'
+    st.markdown(href_article, unsafe_allow_html=True)
