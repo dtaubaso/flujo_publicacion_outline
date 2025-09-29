@@ -21,7 +21,7 @@ import logging
 
 # Configurar logging para consola y archivo, sobrescribiendo cualquier config previa
 logging.basicConfig(
-    level=logging.DEBUG,  # Usa DEBUG para ver todo
+    level=logging.INFO,  # Usa DEBUG para ver todo
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
