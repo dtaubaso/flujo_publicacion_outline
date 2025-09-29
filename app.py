@@ -137,10 +137,16 @@ def main():
                         videos = features["videos"]
                         ai_overview = features["ai_overview"]
                         related_searches = features["related_searches"]
+                        images = features["images"]
+                        twitter = features["twitter"]
+                        carousel = features["carousel"]
+                        knowledge_graph = features["knowledge_graph"]
                         logger.info(f"Usando top {len(organic)} resultados orgánicos + {len(top_stories[:3])} top stories para scraping")
                         logger.info(f"Related searches extraídas del SERP: {len(related_searches)}")
+                        logger.info(f"Features adicionales extraídos - Images: {len(images)}, Twitter: {len(twitter)}, Carousel: {len(carousel)}, Knowledge Graph: {len(knowledge_graph)}")
                         
-                        display_results_summary(organic, paa, videos, ai_overview, top_stories)
+                        display_results_summary(organic, paa, videos, ai_overview, top_stories,
+                                               related_searches, images, twitter, carousel, knowledge_graph)
                     except Exception as e:
                         logger.error(f"Error consultando SERP: {str(e)}")
                         st.error(f"Error consultando SERP: {str(e)}")
@@ -257,6 +263,11 @@ def main():
                                 ai_overview=ai_overview,
                                 videos=videos,
                                 top_stories=top_stories,
+                                related_searches=related_searches,
+                                images=images,
+                                twitter=twitter,
+                                carousel=carousel,
+                                knowledge_graph=knowledge_graph,
                                 intent_label=intent_label,
                                 intent_scores=intent_scores,
                                 model=config["openai_model"],
@@ -278,7 +289,12 @@ def main():
                         related=related or auto, 
                         ai_overview=ai_overview,
                         videos=videos,
-                        top_stories=top_stories
+                        top_stories=top_stories,
+                        related_searches=related_searches,
+                        images=images,
+                        twitter=twitter,
+                        carousel=carousel,
+                        knowledge_graph=knowledge_graph
                     )
                     logger.info(f"Outline generado con método heurístico: {len(outline_md)} caracteres")
 

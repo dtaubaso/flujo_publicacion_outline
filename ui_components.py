@@ -105,14 +105,21 @@ def setup_main_input():
     return keywords, run_btn
 
 
-def display_results_summary(organic, paa, videos, ai_overview, top_stories=None):
+def display_results_summary(organic, paa, videos, ai_overview, top_stories=None, 
+                           related_searches=None, images=None, twitter=None, 
+                           carousel=None, knowledge_graph=None):
     """Muestra resumen de resultados SERP"""
     summary = {
         "organic": len(organic), 
         "paa": len(paa), 
         "videos": len(videos), 
         "ai_overview": bool(ai_overview),
-        "top_stories": len(top_stories) if top_stories else 0
+        "top_stories": len(top_stories) if top_stories else 0,
+        "related_searches": len(related_searches) if related_searches else 0,
+        "images": len(images) if images else 0,
+        "twitter": len(twitter) if twitter else 0,
+        "carousel": len(carousel) if carousel else 0,
+        "knowledge_graph": len(knowledge_graph) if knowledge_graph else 0
     }
     st.write(summary)
     

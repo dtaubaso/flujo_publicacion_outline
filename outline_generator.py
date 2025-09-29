@@ -81,6 +81,8 @@ def generate_video_suggestions_markdown(videos: List[dict]) -> str:
 
 def generate_outline_with_openai(keyword: str, *, df: pd.DataFrame, paa: list, 
                                related: list, ai_overview: list, videos: list, top_stories: list = None,
+                               related_searches: list = None, images: list = None, twitter: list = None,
+                               carousel: list = None, knowledge_graph: list = None,
                                intent_label: str, intent_scores: dict, model: str, 
                                api_key: str, temperature: float = None) -> str:
     """Genera outline usando OpenAI"""
@@ -99,6 +101,11 @@ def generate_outline_with_openai(keyword: str, *, df: pd.DataFrame, paa: list,
             "ai_overview_present": bool(ai_overview),
             "videos": videos[:5],
             "top_stories": (top_stories or [])[:5],
+            "related_searches": (related_searches or [])[:20],
+            "images": (images or [])[:10],
+            "twitter": (twitter or [])[:5],
+            "carousel": (carousel or [])[:5],
+            "knowledge_graph": (knowledge_graph or [])[:5],
         },
         "scraped_summary": {
             "median_length_words": int(df["len_words"].replace(0, np.nan).median(skipna=True) or 0),
@@ -137,7 +144,9 @@ def generate_outline_with_openai(keyword: str, *, df: pd.DataFrame, paa: list,
 
 def build_outline(keyword: str, *, scraped: pd.DataFrame, paa: List[str], 
                  related: List[str], ai_overview: List[str], videos: List[dict] = None, 
-                 top_stories: List[dict] = None) -> str:
+                 top_stories: List[dict] = None, related_searches: List[str] = None,
+                 images: List[dict] = None, twitter: List[dict] = None,
+                 carousel: List[dict] = None, knowledge_graph: List[dict] = None) -> str:
     """Compose a Markdown outline: H2/H3, PAA, gaps, multimedia suggestions."""
     titles = [t for t in scraped["title"].dropna().tolist() if t]
     heads2 = [h for arr in scraped["h2"].dropna().tolist() for h in (arr or [])]
