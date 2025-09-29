@@ -335,6 +335,7 @@ def main():
                 # Guardar resultado del análisis en session_state
                 logger.info("Guardando resultado del análisis en session_state...")
                 st.session_state.analysis_result = {
+                    'kw': kw,  # <--- AGREGA ESTA LINEA
                     'df': df,
                     'outline_md': outline_md,
                     'videos': videos,
@@ -421,6 +422,7 @@ def main():
     # Mostrar resultados y permitir generar artículo si ya hay análisis hecho
     if st.session_state.get("analysis_done") and "analysis_result" in st.session_state:
         data = st.session_state.analysis_result
+        kw = data['kw']  # <--- AGREGA ESTA LINEA
         df = data['df']
         outline_md = data['outline_md']
         videos = data['videos']
