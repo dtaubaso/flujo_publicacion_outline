@@ -153,16 +153,16 @@ def build_outline(keyword: str, *, scraped: pd.DataFrame, paa: List[str],
     
     # Meta información
     lines.append("## Meta")
-    lines.append(f"- Suggested length: ~{max(400, min(2200, int(avg_len*1.1)))} words (median in SERP ≈ {avg_len})")
+    lines.append(f"- Longitud sugerida: ~{max(400, min(2200, int(avg_len*1.1)))} palabras (promedio en SERP ≈ {avg_len})")
     content_bits = []
     if has_lists: 
-        content_bits.append("bulleted lists")
+        content_bits.append("lista con bullets")
     if has_tables: 
-        content_bits.append("comparison table")
+        content_bits.append("tabla de comparación")
     if content_bits: 
-        lines.append("- Include: " + ", ".join(content_bits))
+        lines.append("- Incluir: " + ", ".join(content_bits))
     if ai_overview:
-        lines.append("- **AI Overview present**: Consider summary box + citations in first screen.")
+        lines.append("- **AI Overview presente**: Considere una caja de resumen y citas en la primera pantalla.")
     if top_stories:
         lines.append(f"- **Top Stories presente**: {len(top_stories)} noticias destacadas - Considerar ángulo de actualidad")
 
@@ -184,19 +184,19 @@ def build_outline(keyword: str, *, scraped: pd.DataFrame, paa: List[str],
     
     # Meta información
     lines.append("## Meta")
-    lines.append(f"- Suggested length: ~{max(400, min(2200, int(avg_len*1.1)))} words (median in SERP ≈ {avg_len})")
+    lines.append(f"- Longitud sugerida: ~{max(400, min(2200, int(avg_len*1.1)))} palabras (promedio en SERP ≈ {avg_len})")
     content_bits = []
     if has_lists: 
-        content_bits.append("bulleted lists")
+        content_bits.append("lista con bullets")
     if has_tables: 
-        content_bits.append("comparison table")
+        content_bits.append("tabla de comparación")
     if content_bits: 
-        lines.append("- Include: " + ", ".join(content_bits))
+        lines.append("- Incluir: " + ", ".join(content_bits))
     if ai_overview:
-        lines.append("- **AI Overview present**: Consider summary box + citations in first screen.")
+        lines.append("- **AI Overview presente**: Considere una caja de resumen y citas en la primera pantalla.")
 
     # Estructura H2/H3
-    lines.append("\n## H2/H3 structure (draft)")
+    lines.append("\n## Estructura H2/H3 (borrador)")
     seen = set()
     
     def add_head(h):
