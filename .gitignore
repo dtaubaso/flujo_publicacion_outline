@@ -173,4 +173,7 @@ poetry.toml
 # LSP config files
 pyrightconfig.json
 
+# Specific files
+milei_top_stories_todo.json
+
 # End of https://www.toptal.com/developers/gitignore/api/python

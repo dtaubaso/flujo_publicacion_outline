@@ -105,14 +105,26 @@ def setup_main_input():
     return keywords, run_btn
 
 
-def display_results_summary(organic, paa, videos, ai_overview):
+def display_results_summary(organic, paa, videos, ai_overview, top_stories=None):
     """Muestra resumen de resultados SERP"""
-    st.write({
+    summary = {
         "organic": len(organic), 
         "paa": len(paa), 
         "videos": len(videos), 
-        "ai_overview": bool(ai_overview)
-    })
+        "ai_overview": bool(ai_overview),
+        "top_stories": len(top_stories) if top_stories else 0
+    }
+    st.write(summary)
+    
+    # Mostrar detalles de top stories si hay
+    if top_stories:
+        st.markdown("#### Top Stories encontradas:")
+        for i, story in enumerate(top_stories[:5], 1):
+            st.write(f"{i}. **{story.get('title', 'Sin título')}** ({story.get('source', 'Sin fuente')})")
+            if story.get('url'):
+                st.caption(f"🔗 {story['url']}")
+            if story.get('date'):
+                st.caption(f"📅 {story['date']}")
 
 
 def display_content_anatomy(df):

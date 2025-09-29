@@ -55,8 +55,10 @@ def get_autocomplete(query: str, *, contry_iso_code: str, lang_iso: str) -> List
 
 
 def parse_serp_features(js: Dict[str, Any]) -> Dict[str, Any]:
-    """Extract top organic, PAA, video carousel, AI Overviews, related searches, and images if present."""
+    """Extract all SERP features: organic, PAA, videos, AI overview, related searches, images, top stories, twitter, carousel, knowledge graph."""
     organic, paa, videos, ai_overview, related_searches, images = [], [], [], [], [], []
+    top_stories, twitter, carousel, knowledge_graph = [], [], [], []
+    
     tasks = js.get("tasks", [])
     
     for t in tasks:
@@ -102,6 +104,67 @@ def parse_serp_features(js: Dict[str, Any]) -> Dict[str, Any]:
                                 "url": img.get("url", ""),
                                 "image_url": img.get("image_url")
                             })
+                
+                elif tpe == "top_stories":
+                    for story in it.get("items", []) or []:
+                        if story and story.get("url"):
+                            top_stories.append({
+                                "title": story.get("title", ""),
+                                "url": story.get("url"),
+                                "source": story.get("source", ""),
+                                "domain": story.get("domain", ""),
+                                "date": story.get("date", ""),
+                                "timestamp": story.get("timestamp", ""),
+                                "badges": story.get("badges", [])
+                            })
+                
+                elif tpe == "twitter":
+                    for tweet in it.get("items", []) or []:
+                        if tweet and tweet.get("url"):
+                            twitter.append({
+                                "tweet": tweet.get("tweet", ""),
+                                "url": tweet.get("url"),
+                                "date": tweet.get("date", ""),
+                                "timestamp": tweet.get("timestamp", "")
+                            })
+                
+                elif tpe == "carousel":
+                    carousel_title = it.get("title", "")
+                    carousel_items = []
+                    for item in it.get("items", []) or []:
+                        if item:
+                            carousel_items.append({
+                                "title": item.get("title", ""),
+                                "subtitle": item.get("subtitle", ""),
+                                "image_url": item.get("image_url", ""),
+                                "url": item.get("url", "")
+                            })
+                    if carousel_items:
+                        carousel.append({
+                            "title": carousel_title,
+                            "items": carousel_items
+                        })
+                
+                elif tpe == "knowledge_graph":
+                    kg_data = {
+                        "title": it.get("title", ""),
+                        "subtitle": it.get("subtitle", ""),
+                        "description": it.get("description", ""),
+                        "url": it.get("url", ""),
+                        "image_url": it.get("image_url", "")
+                    }
+                    # Extraer información estructurada del knowledge graph
+                    kg_items = it.get("items", []) or []
+                    structured_data = []
+                    for kg_item in kg_items:
+                        if kg_item.get("type") == "knowledge_graph_row_item":
+                            structured_data.append({
+                                "title": kg_item.get("title", ""),
+                                "text": kg_item.get("text", "")
+                            })
+                    if structured_data:
+                        kg_data["structured_data"] = structured_data
+                    knowledge_graph.append(kg_data)
     
     return {
         "organic": organic, 
@@ -109,5 +172,9 @@ def parse_serp_features(js: Dict[str, Any]) -> Dict[str, Any]:
         "videos": videos, 
         "ai_overview": ai_overview,
         "related_searches": related_searches,
-        "images": images
+        "images": images,
+        "top_stories": top_stories,
+        "twitter": twitter,
+        "carousel": carousel,
+        "knowledge_graph": knowledge_graph
     }

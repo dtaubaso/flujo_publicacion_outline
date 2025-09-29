@@ -33,7 +33,7 @@ from dataforseo_api import dfs_live_serp, get_autocomplete, parse_serp_features
 from dfs_client import RestClient
 from scraper import extract_article
 from analytics import guess_intent, analyze_content_structure
-from outline_generator import generate_outline_with_openai, build_outline, generate_video_suggestions_markdown
+from outline_generator import generate_outline_with_openai, build_outline, generate_video_suggestions_markdown, generate_top_stories_markdown
 from ui_components import (
     setup_sidebar, 
     setup_main_input, 
@@ -110,17 +110,37 @@ def main():
                         logger.info(f"Respuesta SERP recibida: {type(js)}, keys: {js.keys() if isinstance(js, dict) else 'No dict'}")
                         
                         features = parse_serp_features(js)
-                        logger.info(f"Features parseadas: organic={len(features['organic'])}, paa={len(features['paa'])}, videos={len(features['videos'])}, ai_overview={len(features['ai_overview'])}, related_searches={len(features['related_searches'])}")
+                        logger.info(f"Features parseadas: organic={len(features['organic'])}, paa={len(features['paa'])}, videos={len(features['videos'])}, ai_overview={len(features['ai_overview'])}, related_searches={len(features['related_searches'])}, top_stories={len(features['top_stories'])}, twitter={len(features['twitter'])}, carousel={len(features['carousel'])}, knowledge_graph={len(features['knowledge_graph'])}")
                         
                         organic = features["organic"][:config["top_n"]]
+                        top_stories = features["top_stories"]
+                        
+                        # Combinar URLs de organic y top_stories para scraping
+                        all_urls_to_scrape = []
+                        
+                        # Agregar URLs orgánicas
+                        for item in organic:
+                            all_urls_to_scrape.append({
+                                "title": item["title"],
+                                "url": item["url"],
+                                "source_type": "organic"
+                            })
+                        
+                        # Agregar URLs de top stories (hasta 3 para no sobrecargar)
+                        for story in top_stories[:3]:
+                            all_urls_to_scrape.append({
+                                "title": story["title"],
+                                "url": story["url"],
+                                "source_type": "top_stories"
+                            })
                         paa = features["paa"]
                         videos = features["videos"]
                         ai_overview = features["ai_overview"]
                         related_searches = features["related_searches"]
-                        logger.info(f"Usando top {len(organic)} resultados orgánicos")
+                        logger.info(f"Usando top {len(organic)} resultados orgánicos + {len(top_stories[:3])} top stories para scraping")
                         logger.info(f"Related searches extraídas del SERP: {len(related_searches)}")
                         
-                        display_results_summary(organic, paa, videos, ai_overview)
+                        display_results_summary(organic, paa, videos, ai_overview, top_stories)
                     except Exception as e:
                         logger.error(f"Error consultando SERP: {str(e)}")
                         st.error(f"Error consultando SERP: {str(e)}")
@@ -133,14 +153,15 @@ def main():
                 st.markdown(f"**Intención (heurística)**: `{intent_label}`")
                 st.json(intent_scores, expanded=False)
 
-                # Scraping de resultados
-                logger.info(f"Iniciando scraping de {len(organic)} resultados...")
-                st.info(f"Extrayendo contenido de los top {len(organic)} resultados…")
+                # Scraping de resultados (organic + top stories)
+                logger.info(f"Iniciando scraping de {len(all_urls_to_scrape)} resultados (organic + top stories)...")
+                st.info(f"Extrayendo contenido de {len(all_urls_to_scrape)} resultados (orgánicos + noticias destacadas)…")
                 rows = []
-                for i, item in enumerate(organic, 1):
+                for i, item in enumerate(all_urls_to_scrape, 1):
                     url = item.get("url")
                     title = item.get("title")
-                    logger.info(f"Scraping {i}/{len(organic)}: {url}")
+                    source_type = item.get("source_type", "organic")
+                    logger.info(f"Scraping {i}/{len(all_urls_to_scrape)}: {url} (tipo: {source_type})")
                     if not url:
                         logger.warning(f"URL vacía en resultado {i}")
                         continue
@@ -156,6 +177,7 @@ def main():
                             "len_words": 0, "error": str(e)
                         }
                     data["rank"] = i
+                    data["source_type"] = source_type
                     if not data.get("title"):
                         data["title"] = title
                     rows.append(data)
@@ -234,6 +256,7 @@ def main():
                                 related=related or auto or [],
                                 ai_overview=ai_overview,
                                 videos=videos,
+                                top_stories=top_stories,
                                 intent_label=intent_label,
                                 intent_scores=intent_scores,
                                 model=config["openai_model"],
@@ -254,15 +277,20 @@ def main():
                         paa=paa, 
                         related=related or auto, 
                         ai_overview=ai_overview,
-                        videos=videos
+                        videos=videos,
+                        top_stories=top_stories
                     )
                     logger.info(f"Outline generado con método heurístico: {len(outline_md)} caracteres")
 
-                # Agregar sugerencias de video al markdown para exportación
+                # Agregar sugerencias de video y top stories al markdown para exportación
                 video_suggestions_md = generate_video_suggestions_markdown(videos)
+                top_stories_md = generate_top_stories_markdown(top_stories)
+                
                 full_outline_md = outline_md
                 if video_suggestions_md:
                     full_outline_md += "\n\n" + video_suggestions_md
+                if top_stories_md:
+                    full_outline_md += "\n\n" + top_stories_md
                 
                 # Mostrar outline
                 logger.info("Mostrando outline final...")
