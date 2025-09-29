@@ -334,7 +334,9 @@ def generate_article_with_openai(keyword: str, outline: str, *, df: pd.DataFrame
         api_params["temperature"] = temperature
 
     resp = client.responses.create(**api_params)
-
+    print("=======================================")
+    print("Respuesta completa de OpenAI:")
+    print(resp)
     # Extraer contenido del texto
     if hasattr(resp, 'content') and resp.content:
         return resp.content[0].text if hasattr(resp.content[0], 'text') else str(resp.content[0])
