@@ -54,7 +54,13 @@ def main():
     """Función principal de la aplicación Streamlit"""
     logger.info("=== INICIANDO APLICACIÓN ===")
     st.set_page_config(page_title="Generador de outline SEO", page_icon="🧭", layout="wide")
-    bootstrap_state()
+    
+    # Inicializar session_state solo para artículos
+    if 'generated_articles' not in st.session_state:
+        st.session_state.generated_articles = {}
+    if 'analysis_results' not in st.session_state:
+        st.session_state.analysis_results = {}
+    
     # Ejecutar autenticación
     if not st.user.is_logged_in:
         st.info("🔐 Inicia sesión con tu cuenta corporativa")
@@ -325,50 +331,130 @@ def main():
                 # Botones de descarga (con sugerencias de video incluidas)
                 logger.info("Creando botones de descarga...")
                 create_download_links(full_outline_md, df, kw)
-                # ========= NUEVO: Empaquetar y guardar resultado del análisis para esta KW =========
-
-                # Armado robusto de features sin NameError si alguna señal no existe en este scope
-                _lc = locals()
-                features_pack = {
-                    "paa": _lc.get("paa", []),
-                    "videos": _lc.get("videos", []),
-                    "ai_overview": _lc.get("ai_overview", []),
-                    "top_stories": _lc.get("top_stories", []),
-                    "related_searches": _lc.get("related_searches", []),
-                    "images": _lc.get("images", []),
-                    "twitter": _lc.get("twitter", []),
-                    "carousel": _lc.get("carousel", []),
-                    "knowledge_graph": _lc.get("knowledge_graph", []),
-                    "intent_label": _lc.get("intent_label", ""),
-                    "intent_scores": _lc.get("intent_scores", {}),
+                
+                # Guardar datos del análisis en session_state
+                st.session_state.analysis_results[kw] = {
+                    'df': df,
+                    'outline_md': outline_md,
+                    'paa': paa,
+                    'videos': videos,
+                    'ai_overview': ai_overview,
+                    'top_stories': top_stories,
+                    'related_searches': related_searches,
+                    'images': images,
+                    'twitter': twitter,
+                    'carousel': carousel,
+                    'knowledge_graph': knowledge_graph,
+                    'intent_label': intent_label,
+                    'intent_scores': intent_scores,
+                    'related': related,
+                    'auto': auto,
+                    'config': config
                 }
-
-                config_pack = {
-                    "use_openai": config.get("use_openai", False),
-                    "openai_key": config.get("openai_key", ""),
-                    "openai_model": config.get("openai_model", "gpt-3.5-turbo"),
-                    "openai_temperature": config.get("openai_temperature", 0.7),
-                }
-
-                # Usar directamente las variables del scope local en lugar de _lc.get()
-                related_or_auto = related or auto or []
-
-                # Guardar el paquete de análisis (persistente por keyword)
-                save_analysis_result(
-                    kw,
-                    df=df,
-                    outline_md=outline_md,
-                    features=features_pack,
-                    config=config_pack,
-                    related_or_auto=related_or_auto,
+                
+                # Opción para generar artículo completo (SIN RECARGA)
+                st.markdown("---")
+                st.subheader("🚀 Generar Artículo Completo")
+                
+                with st.expander("ℹ️ ¿Qué opción elegir?"):
+                    st.markdown("""
+                    **Artículo con IA (OpenAI):**
+                    - ✅ Alta calidad y coherencia
+                    - ✅ Uso de todo el contexto SERP
+                    - ⏳ Toma varios minutos
+                    
+                    **Artículo Básico (Heurístico):**
+                    - ✅ Rápido y gratuito
+                    - ✅ Estructura básica
+                    """)
+                
+                # Key única para esta keyword
+                article_key = f"article_{kw}"
+                select_key = f"select_{kw}"
+                
+                # Selector sin recarga
+                article_option = st.selectbox(
+                    "Tipo de artículo:",
+                    ["No generar", "✨ Con IA (OpenAI)", "📝 Básico (Heurístico)"],
+                    key=select_key
                 )
-
-                # ========= NUEVO: Sección de generación de artículo (persistente) =========
-                render_article_section(
-                    kw,
-                    generate_article_with_openai=generate_article_with_openai,
-                    generate_article_heuristic=generate_article_heuristic,
-                )
+                
+                # Generar solo si cambió la opción
+                if article_option != "No generar":
+                    current_selection = f"{kw}_{article_option}"
+                    
+                    # Solo generar si es nueva selección
+                    if article_key not in st.session_state.generated_articles or st.session_state.generated_articles[article_key].get('selection') != current_selection:
+                        
+                        if article_option == "✨ Con IA (OpenAI)":
+                            if config.get("use_openai") and config.get("openai_key"):
+                                with st.spinner("Generando artículo con IA... ⏳"):
+                                    try:
+                                        article_content = generate_article_with_openai(
+                                            kw,
+                                            outline=outline_md,
+                                            df=df,
+                                            paa=paa,
+                                            related=related or auto or [],
+                                            ai_overview=ai_overview,
+                                            videos=videos,
+                                            top_stories=top_stories,
+                                            related_searches=related_searches,
+                                            images=images,
+                                            twitter=twitter,
+                                            carousel=carousel,
+                                            knowledge_graph=knowledge_graph,
+                                            intent_label=intent_label,
+                                            intent_scores=intent_scores,
+                                            model=config["openai_model"],
+                                            api_key=config["openai_key"],
+                                            temperature=config["openai_temperature"],
+                                        )
+                                        
+                                        st.session_state.generated_articles[article_key] = {
+                                            'content': article_content,
+                                            'type': 'ia',
+                                            'selection': current_selection
+                                        }
+                                        
+                                    except Exception as e:
+                                        st.error(f"❌ Error: {str(e)}")
+                            else:
+                                st.warning("⚠️ Configura OpenAI en la barra lateral")
+                        
+                        elif article_option == "📝 Básico (Heurístico)":
+                            with st.spinner("Generando artículo básico... ⏳"):
+                                try:
+                                    article_content = generate_article_heuristic(
+                                        kw,
+                                        outline=outline_md,
+                                        df=df,
+                                        paa=paa,
+                                        related=related or auto or []
+                                    )
+                                    
+                                    st.session_state.generated_articles[article_key] = {
+                                        'content': article_content,
+                                        'type': 'basico',
+                                        'selection': current_selection
+                                    }
+                                    
+                                except Exception as e:
+                                    st.error(f"❌ Error: {str(e)}")
+                
+                # Mostrar artículo generado
+                if article_key in st.session_state.generated_articles:
+                    article_data = st.session_state.generated_articles[article_key]
+                    
+                    if article_data['type'] == 'ia':
+                        st.success("✅ ¡Artículo generado con IA!")
+                        st.markdown("### 📄 Artículo Completo (IA)")
+                    else:
+                        st.success("✅ ¡Artículo básico generado!")
+                        st.markdown("### 📄 Artículo Básico")
+                    
+                    st.markdown(article_data['content'])
+                    create_article_download_button(article_data['content'], kw, article_data['type'])
 
                 logger.info(f"=== PROCESAMIENTO COMPLETADO PARA: {kw} ===")
 
