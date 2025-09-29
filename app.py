@@ -74,11 +74,11 @@ def main():
         st.error("Solo usuarios de nomadic pueden acceder")
         st.stop()
     
-    # Configurar interfaz
+    # Configurar interfaz (incluye opciones de artículo en setup_sidebar)
     logger.info("Configurando interfaz de usuario...")
     config = setup_sidebar()
     logger.info(f"Config obtenida: {list(config.keys())}")
-    
+
     keywords, run_btn = setup_main_input()
     logger.info(f"Keywords ingresadas: {keywords}")
     logger.info(f"Botón presionado: {run_btn}")
@@ -325,52 +325,19 @@ def main():
                 st.markdown(outline_md)
 
                 # Sugerencias de video
-                logger.info(f"Mostrando sugerencias de video: {len(videos)} videos")
                 display_video_suggestions(videos)
 
-                # Botones de descarga (con sugerencias de video incluidas)
-                logger.info("Creando botones de descarga...")
+                # Botones de descarga
                 create_download_links(full_outline_md, df, kw)
-                
-                # Guardar resultado del análisis en session_state
-                logger.info("Guardando resultado del análisis en session_state...")
-                st.session_state.analysis_result = {
-                    'kw': kw,  # <--- AGREGA ESTA LINEA
-                    'df': df,
-                    'outline_md': outline_md,
-                    'videos': videos,
-                    'top_stories': top_stories,
-                    'related_searches': related_searches,
-                    'images': images,
-                    'twitter': twitter,
-                    'carousel': carousel,
-                    'knowledge_graph': knowledge_graph,
-                    'intent_label': intent_label,
-                    'intent_scores': intent_scores,
-                }
-                st.session_state.analysis_done = True
 
-                # Generación de artículo a pedido (USANDO datos de session_state)
-                st.markdown("---")
-                st.subheader("🚀 Generar Artículo Completo")
-                with st.expander("ℹ️ ¿Qué opción elegir?"):
-                    st.markdown("""
-                    **Artículo con IA (OpenAI):**
-                    - ✅ Alta calidad y coherencia
-                    - ✅ Uso de todo el contexto SERP
-                    - ⏳ Toma varios minutos
-
-                    **Artículo Básico (Heurístico):**
-                    - ✅ Rápido y gratuito
-                    - ✅ Estructura básica
-                    """)
-
-                col1, col2 = st.columns(2)
-                with col1:
-                    if st.button(f"✨ Artículo con IA", key=f"ai_{kw}", type="primary"):
+                # SOLO generación automática de artículo según config
+                if config.get("auto_generate_article") and config.get("article_type"):
+                    st.markdown("---")
+                    st.subheader("🚀 Artículo Generado Automáticamente")
+                    if config["article_type"] == "IA (OpenAI)":
                         if config.get("use_openai") and config.get("openai_key"):
-                            try:
-                                with st.spinner("Generando artículo con IA... ⏳"):
+                            with st.spinner("Generando artículo con IA... ⏳"):
+                                try:
                                     article_content = generate_article_with_openai(
                                         kw,
                                         outline=outline_md,
@@ -395,14 +362,13 @@ def main():
                                     st.markdown("### 📄 Artículo Completo (IA)")
                                     st.markdown(article_content)
                                     create_article_download_button(article_content, kw, 'ia')
-                            except Exception as e:
-                                st.error(f"❌ Error: {str(e)}")
+                                except Exception as e:
+                                    st.error(f"❌ Error: {str(e)}")
                         else:
                             st.warning("⚠️ Configura OpenAI en la barra lateral")
-                with col2:
-                    if st.button(f"📝 Artículo Básico", key=f"basic_{kw}"):
-                        try:
-                            with st.spinner("Generando artículo básico... ⏳"):
+                    elif config["article_type"] == "Básico (Heurístico)":
+                        with st.spinner("Generando artículo básico... ⏳"):
+                            try:
                                 article_content = generate_article_heuristic(
                                     kw,
                                     outline=outline_md,
@@ -414,108 +380,12 @@ def main():
                                 st.markdown("### 📄 Artículo Básico")
                                 st.markdown(article_content)
                                 create_article_download_button(article_content, kw, 'basico')
-                        except Exception as e:
-                            st.error(f"❌ Error: {str(e)}")
+                            except Exception as e:
+                                st.error(f"❌ Error: {str(e)}")
 
                 logger.info(f"=== PROCESAMIENTO COMPLETADO PARA: {kw} ===")
 
-    # Mostrar resultados y permitir generar artículo si ya hay análisis hecho
-    if st.session_state.get("analysis_done") and "analysis_result" in st.session_state:
-        data = st.session_state.analysis_result
-        kw = data['kw']  # <--- AGREGA ESTA LINEA
-        df = data['df']
-        outline_md = data['outline_md']
-        videos = data['videos']
-        top_stories = data['top_stories']
-        related_searches = data['related_searches']
-        images = data['images']
-        twitter = data['twitter']
-        carousel = data['carousel']
-        knowledge_graph = data['knowledge_graph']
-        intent_label = data['intent_label']
-        intent_scores = data['intent_scores']
-
-        # Mostrar outline
-        st.markdown("### Outline recomendado")
-        st.markdown(outline_md)
-
-        # Sugerencias de video
-        logger.info(f"Mostrando sugerencias de video: {len(videos)} videos")
-        display_video_suggestions(videos)
-
-        # Botones de descarga (con sugerencias de video incluidas)
-        logger.info("Creando botones de descarga...")
-        create_download_links(outline_md, df, kw)
-        
-        # Generación de artículo a pedido (USANDO datos de session_state)
-        st.markdown("---")
-        st.subheader("🚀 Generar Artículo Completo")
-        with st.expander("ℹ️ ¿Qué opción elegir?"):
-            st.markdown("""
-            **Artículo con IA (OpenAI):**
-            - ✅ Alta calidad y coherencia
-            - ✅ Uso de todo el contexto SERP
-            - ⏳ Toma varios minutos
-
-            **Artículo Básico (Heurístico):
-            - ✅ Rápido y gratuito
-            - ✅ Estructura básica
-            """)
-
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button(f"✨ Artículo con IA", key=f"ai_{kw}", type="primary"):
-                if config.get("use_openai") and config.get("openai_key"):
-                    try:
-                        with st.spinner("Generando artículo con IA... ⏳"):
-                            article_content = generate_article_with_openai(
-                                kw,
-                                outline=outline_md,
-                                df=df,
-                                paa=paa,
-                                related=related or auto or [],
-                                ai_overview=ai_overview,
-                                videos=videos,
-                                top_stories=top_stories,
-                                related_searches=related_searches,
-                                images=images,
-                                twitter=twitter,
-                                carousel=carousel,
-                                knowledge_graph=knowledge_graph,
-                                intent_label=intent_label,
-                                intent_scores=intent_scores,
-                                model=config["openai_model"],
-                                api_key=config["openai_key"],
-                                temperature=config["openai_temperature"],
-                            )
-                            st.success("✅ ¡Artículo generado con IA!")
-                            st.markdown("### 📄 Artículo Completo (IA)")
-                            st.markdown(article_content)
-                            create_article_download_button(article_content, kw, 'ia')
-                    except Exception as e:
-                        st.error(f"❌ Error: {str(e)}")
-                else:
-                    st.warning("⚠️ Configura OpenAI en la barra lateral")
-        with col2:
-            if st.button(f"📝 Artículo Básico", key=f"basic_{kw}"):
-                try:
-                    with st.spinner("Generando artículo básico... ⏳"):
-                        article_content = generate_article_heuristic(
-                            kw,
-                            outline=outline_md,
-                            df=df,
-                            paa=paa,
-                            related=related or auto or []
-                        )
-                        st.success("✅ ¡Artículo básico generado!")
-                        st.markdown("### 📄 Artículo Básico")
-                        st.markdown(article_content)
-                        create_article_download_button(article_content, kw, 'basico')
-                except Exception as e:
-                    st.error(f"❌ Error: {str(e)}")
-
     logger.info("=== APLICACIÓN FINALIZADA ===")
-
 
 if __name__ == "__main__":
     main()

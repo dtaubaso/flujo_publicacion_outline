@@ -63,6 +63,18 @@ def setup_sidebar():
             gl = st.text_input("gl (Google API - código de país)", value=country_iso_code)
             hl = st.text_input("hl (Google API - código de idioma)", value=lang_iso_code)
 
+        # Opciones de generación de artículo
+        st.sidebar.markdown("---")
+        st.sidebar.markdown("### Opciones de Artículo")
+        auto_generate_article = st.sidebar.checkbox("¿Generar artículo automáticamente?", value=False)
+        article_type = None
+        if auto_generate_article:
+            article_type = st.sidebar.radio(
+                "Tipo de artículo a generar:",
+                ["IA (OpenAI)", "Básico (Heurístico)"],
+                index=0
+            )
+
     # Obtener el nombre completo del país para DataForSEO
     location_name = COUNTRY_ISO_TO_NAME.get(country_iso_code, "Argentina")
     
@@ -83,6 +95,8 @@ def setup_sidebar():
         "gl": gl,
         "hl": hl,
         "pause": pause,
+        "auto_generate_article": auto_generate_article,
+        "article_type": article_type,
     }
 
 
