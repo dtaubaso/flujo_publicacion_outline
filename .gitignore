@@ -175,5 +175,6 @@ pyrightconfig.json
 
 # Specific files
 milei_top_stories_todo.json
+.streamlit/
 
 # End of https://www.toptal.com/developers/gitignore/api/python

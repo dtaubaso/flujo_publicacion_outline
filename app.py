@@ -19,16 +19,18 @@ import pandas as pd
 import streamlit as st
 import logging
 
-# Configurar logging
+# Configurar logging para consola y archivo, sobrescribiendo cualquier config previa
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,  # Usa DEBUG para ver todo
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler('app.log')
-    ]
+        logging.FileHandler('app.log', encoding='utf-8')
+    ],
+    force=True  # Sobrescribe cualquier configuración previa
 )
 logger = logging.getLogger(__name__)
+logger.info("=== LOGGING INICIALIZADO ===")  # Prueba de log
 
 # Imports de nuestros módulos
 from dataforseo_api import dfs_live_serp, get_autocomplete, parse_serp_features
