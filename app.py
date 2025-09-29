@@ -45,6 +45,7 @@ from ui_components import (
     create_download_links,
     create_article_download_button
 )
+from create_article import bootstrap_state, save_analysis_result, render_article_section
 
 # ──────────────────────────────────────────────────────────────────────────────
 # UI CONFIG
@@ -53,6 +54,7 @@ def main():
     """Función principal de la aplicación Streamlit"""
     logger.info("=== INICIANDO APLICACIÓN ===")
     st.set_page_config(page_title="Generador de outline SEO", page_icon="🧭", layout="wide")
+    bootstrap_state()
     # Ejecutar autenticación
     if not st.user.is_logged_in:
         st.info("🔐 Inicia sesión con tu cuenta corporativa")
@@ -323,8 +325,52 @@ def main():
                 # Botones de descarga (con sugerencias de video incluidas)
                 logger.info("Creando botones de descarga...")
                 create_download_links(full_outline_md, df, kw)
-                
-                
+                # ========= NUEVO: Empaquetar y guardar resultado del análisis para esta KW =========
+
+                # Armado robusto de features sin NameError si alguna señal no existe en este scope
+                _lc = locals()
+                features_pack = {
+                    "paa": _lc.get("paa", []),
+                    "videos": _lc.get("videos", []),
+                    "ai_overview": _lc.get("ai_overview", []),
+                    "top_stories": _lc.get("top_stories", []),
+                    "related_searches": _lc.get("related_searches", []),
+                    "images": _lc.get("images", []),
+                    "twitter": _lc.get("twitter", []),
+                    "carousel": _lc.get("carousel", []),
+                    "knowledge_graph": _lc.get("knowledge_graph", []),
+                    "intent_label": _lc.get("intent_label", ""),
+                    "intent_scores": _lc.get("intent_scores", {}),
+                }
+
+                config_pack = {
+                    "use_openai": config.get("use_openai", False),
+                    "openai_key": config.get("openai_key", ""),
+                    "openai_model": config.get("openai_model", "gpt-3.5-turbo"),
+                    "openai_temperature": config.get("openai_temperature", 0.7),
+                }
+
+                # Usar directamente las variables del scope local en lugar de _lc.get()
+                related_or_auto = related or auto or []
+
+                # Guardar el paquete de análisis (persistente por keyword)
+                save_analysis_result(
+                    kw,
+                    df=df,
+                    outline_md=outline_md,
+                    features=features_pack,
+                    config=config_pack,
+                    related_or_auto=related_or_auto,
+                )
+
+                # ========= NUEVO: Sección de generación de artículo (persistente) =========
+                render_article_section(
+                    kw,
+                    generate_article_with_openai=generate_article_with_openai,
+                    generate_article_heuristic=generate_article_heuristic,
+                )
+
+                logger.info(f"=== PROCESAMIENTO COMPLETADO PARA: {kw} ===")
 
     logger.info("=== APLICACIÓN FINALIZADA ===")
 
