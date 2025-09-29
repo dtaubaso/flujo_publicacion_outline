@@ -338,6 +338,7 @@ def main():
                         if config.get("use_openai") and config.get("openai_key"):
                             with st.spinner("Generando artículo con IA... ⏳"):
                                 try:
+                                    logger.info(f"Llamando a generate_article_with_openai para '{kw}'")
                                     article_content = generate_article_with_openai(
                                         kw,
                                         outline=outline_md,
@@ -358,11 +359,16 @@ def main():
                                         api_key=config["openai_key"],
                                         temperature=config["openai_temperature"],
                                     )
+                                    logger.info(f"Artículo generado con IA para '{kw}': {len(article_content)} caracteres")
                                     st.success("✅ ¡Artículo generado con IA!")
                                     st.markdown("### 📄 Artículo Completo (IA)")
                                     st.markdown(article_content)
                                     create_article_download_button(article_content, kw, 'ia')
                                 except Exception as e:
+                                    logger.error(f"Error generando artículo con OpenAI para '{kw}': {str(e)}")
+                                    # Si la función genera un response_raw, loguéalo
+                                    if hasattr(e, 'response') and hasattr(e.response, 'text'):
+                                        logger.error(f"Respuesta cruda OpenAI: {e.response.text}")
                                     st.error(f"❌ Error: {str(e)}")
                         else:
                             st.warning("⚠️ Configura OpenAI en la barra lateral")
@@ -381,6 +387,7 @@ def main():
                                 st.markdown(article_content)
                                 create_article_download_button(article_content, kw, 'basico')
                             except Exception as e:
+                                logger.error(f"Error generando artículo básico para '{kw}': {str(e)}")
                                 st.error(f"❌ Error: {str(e)}")
 
                 logger.info(f"=== PROCESAMIENTO COMPLETADO PARA: {kw} ===")
