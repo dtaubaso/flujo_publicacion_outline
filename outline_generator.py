@@ -14,6 +14,16 @@ try:
 except Exception:
     OpenAI = None
 
+# Definir qué funciones están disponibles para importar
+__all__ = [
+    'generate_outline_with_openai',
+    'build_outline',
+    'generate_video_suggestions_markdown',
+    'generate_top_stories_markdown',
+    'generate_article_with_openai',
+    'generate_article_heuristic'
+]
+
 
 def generate_top_stories_markdown(top_stories: List[dict]) -> str:
     """Genera markdown de top stories encontradas en SERP"""

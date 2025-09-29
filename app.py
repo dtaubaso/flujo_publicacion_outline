@@ -35,7 +35,7 @@ from dataforseo_api import dfs_live_serp, get_autocomplete, parse_serp_features
 from dfs_client import RestClient
 from scraper import extract_article
 from analytics import guess_intent, analyze_content_structure
-from outline_generator import generate_outline_with_openai, build_outline, generate_video_suggestions_markdown, generate_top_stories_markdown, generate_article_with_openai, generate_article_heuristic
+from outline_generator import *
 from ui_components import (
     setup_sidebar, 
     setup_main_input, 
