@@ -75,7 +75,7 @@ Incluye obligatoriamente:
 3) **Tipos de contenido multimedia** a incluir (basado en videos, carousels encontrados).
 4) **Longitud recomendada** (justifica basándote en competidores).
 5) **Anatomía del contenido** (tablas, listas, comparaciones, FAQs, elementos estructurados).
-6) **Outline con H2/H3 reales** (formato SEO real, no ideas generales).
+6) **Outline con H2/H3 reales** (texto SEO real, no ideas generales, no apliques la etiqueta).
 7) **Content gaps** vs top resultados actuales.
 8) **N-gramas frecuentes** en títulos de competidores (top 10).
 9) **Preguntas a responder** (extraídas de PAA).
