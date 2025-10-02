@@ -95,8 +95,8 @@ def setup_sidebar():
         "gl": gl,
         "hl": hl,
         "pause": pause,
-        "auto_generate_article": auto_generate_article,
-        "article_type": article_type,
+        #"auto_generate_article": auto_generate_article,
+        #"article_type": article_type,
     }
 
 
